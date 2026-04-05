@@ -29,10 +29,8 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   // Initialize Socket.IO connection for multiplayer
   useEffect(() => {
     if (gameSettings.mode === 'multiplayer' && !gameSettings.isLocalMultiplayer) {
-      // Connect to your Render server for online multiplayer
-      const serverUrl = import.meta.env.MODE === 'production' 
-        ? 'https://your-server-name.onrender.com'  // Replace with your Render URL
-        : 'http://localhost:3002'
+      // Connect to server using absolute VITE env var (defaults to localhost)
+      const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3002'
       
       const newSocket = io(serverUrl)
       

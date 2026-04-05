@@ -3,6 +3,7 @@ const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
 const path = require('path');
+require('dotenv').config();
 
 // Import managers
 const RoomManager = require('./manager/roomManager');
