@@ -1,0 +1,154 @@
+import { useState } from 'react'
+
+const Lobby = ({ onStartGame }) => {
+  const [activeTab, setActiveTab] = useState('localMultiplayer')
+  const [roomCode, setRoomCode] = useState('')
+  const [playerName, setPlayerName] = useState('Ronit')
+
+  const handleCreateRoom = () => {
+    if (!playerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+    onStartGame({ 
+      mode: 'multiplayer', 
+      type: 'create', 
+      roomCode: newRoomCode, 
+      playerName,
+      isLocalMultiplayer: false 
+    })
+  }
+
+  const handleJoinRoom = () => {
+    if (!playerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    if (!roomCode.trim()) {
+      alert('Please enter a room code')
+      return
+    }
+    onStartGame({ 
+      mode: 'multiplayer', 
+      type: 'join', 
+      roomCode: roomCode.toUpperCase(), 
+      playerName,
+      isLocalMultiplayer: false 
+    })
+  }
+
+  const handleLocalMultiplayer = () => {
+    if (!playerName.trim()) {
+      alert('Please enter your name')
+      return
+    }
+    // For local multiplayer, create a room and auto-join as second player
+    const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+    onStartGame({ 
+      mode: 'multiplayer', 
+      type: 'local', 
+      roomCode: roomCode, 
+      playerName: playerName,
+      isLocalMultiplayer: true 
+    })
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#040404] to-[#1f1f1f] flex items-center justify-center p-4">
+      <div className="bg-[#1f1f1f] rounded-2xl shadow-2xl p-8 w-full max-w-md border border-[#00c896]">
+        <h1 className="text-4xl font-bold text-center mb-8 text-[#00c896]">🕳️ Black Hole</h1>
+        
+        <div className="mb-6">
+          <input
+            type="text"
+            placeholder="Enter your name"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            className="w-full px-4 py-3 border border-[#00c896] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c896] bg-[#040404] text-white placeholder-gray-400"
+            maxLength={20}
+          />
+        </div>
+
+        <div className="flex mb-6 bg-[#040404] rounded-lg p-1">
+          <button
+            onClick={() => setActiveTab('localMultiplayer')}
+            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+              activeTab === 'localMultiplayer'
+                ? 'bg-[#00c896] text-[#040404] shadow-sm'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Local 2P
+          </button>
+          <button
+            onClick={() => setActiveTab('multiplayer')}
+            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+              activeTab === 'multiplayer'
+                ? 'bg-[#00c896] text-[#040404] shadow-sm'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Online Multiplayer
+          </button>
+        </div>
+
+        {activeTab === 'localMultiplayer' ? (
+          <div className="space-y-4">
+            <div className="text-center text-gray-400 mb-4">
+              <p>Play with a friend on the same device!</p>
+              <p className="text-sm mt-2">👥 Both players take turns on this screen</p>
+            </div>
+            <button
+              onClick={handleLocalMultiplayer}
+              className="w-full bg-gradient-to-r from-[#00c896] to-[#00a67c] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:from-[#00a67c] hover:to-[#008566] transition-all transform hover:scale-105"
+            >
+              Start Local Game
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Room Code</label>
+                <input
+                  type="text"
+                  placeholder="Enter room code"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                  className="w-full px-4 py-3 border border-[#00c896] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00c896] bg-[#040404] text-white placeholder-gray-400"
+                  maxLength={6}
+                />
+              </div>
+              
+              <button
+                onClick={handleJoinRoom}
+                className="w-full bg-[#00c896] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:bg-[#00a67c] transition-colors"
+              >
+                Join Room
+              </button>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-600"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-[#1f1f1f] text-gray-400">OR</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleCreateRoom}
+                className="w-full bg-[#00c896] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:bg-[#00a67c] transition-colors"
+              >
+                Create Room
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default Lobby
