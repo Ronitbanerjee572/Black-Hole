@@ -354,7 +354,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         }
         content = cell.number.toString()
       } else if (gamePhase === 'playing' && isMyTurn) {
-        circleClass += 'bg-black border-gray-600 hover:bg-gray-900 hover:border-[#00c896] cursor-pointer '
+        circleClass += 'bg-black border-gray-600 hover:bg-gray-900 hover:border-[#00c896] cursor-pointer transition-all duration-300 '
         if (isSelected) {
           circleClass += 'ring-2 ring-[#00c896] '
         }
@@ -392,9 +392,9 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBackToLobby}
-            className="bg-[#000000] text-[#00c896] px-4 py-2 rounded-lg font-semibold hover:bg-[#00c896] hover:text-[#040404] transition-colors border border-[#00c896]"
+            className="bg-[#000000] text-[#00c896] px-4 py-2 rounded-lg font-semibold hover:bg-[#00c896] hover:text-[#040404] transition-all duration-300 border border-[#00c896]"
           >
-            ← Back to Lobby
+            ← Lobby
           </button>
           <h1 className="text-3xl font-bold text-[#00c896] flex">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg> BlackHole
@@ -403,7 +403,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
             <span className="font-semibold">Player:</span> {gameSettings.playerName}
             {gameSettings.mode === 'multiplayer' && (
               <span className="ml-2 text-sm">
-                {isConnected ? '🟢 Online' : '🔴 Offline'}
+                {isConnected ? '🟢Online' : '🔴Offline'}
               </span>
             )}
           </div>
@@ -422,12 +422,12 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
             <h2 className="text-xl font-bold mb-4 text-[#00c896]">Game Info</h2>
             <div className="space-y-3 text-sm text-gray-300">
               {/* Accordion for Instructions */}
-              <details className="group">
-                <summary className="font-semibold text-white cursor-pointer outline-none list-none flex justify-between items-center hover:text-[#00c896] transition-colors [&::-webkit-details-marker]:hidden border-b border-gray-700 pb-2 mb-3">
-                  <span>📖 Instructions</span>
-                  <span className="transition-transform duration-300 group-open:rotate-180">▼</span>
+              <details className="group border border-[#00c896]/40 rounded-lg bg-[#00c896]/5 overflow-hidden transition-all duration-500 open:bg-[#00c896]/10 mb-5 shadow-inner">
+                <summary className="font-semibold text-white cursor-pointer outline-none list-none flex justify-between items-center hover:text-[#00c896] transition-colors duration-300 [&::-webkit-details-marker]:hidden p-3 bg-black/30">
+                  <span className="flex items-center gap-2">Instructions</span>
+                  <span className="transition-transform duration-300 group-open:rotate-180 text-[#00c896]">⏷</span>
                 </summary>
-                <div className="space-y-3 mb-4 overflow-hidden">
+                <div className="space-y-3 p-4 border-t border-[#00c896]/20 opacity-0 group-open:opacity-100 group-open:animate-in group-open:slide-in-from-top-2 group-open:fade-in duration-300">
                   <div className="border-l-4 border-[#00c896] pl-3">
                     <p className="font-semibold text-white">Objective:</p>
                     <p>Place numbers 1-10. The final empty circle becomes the Black Hole.</p>
@@ -474,6 +474,36 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
 
           {/* Game Board */}
           <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-6 border border-[#00c896]/30 transition-all">
+
+            {gamePhase === 'finished' && (
+              <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 mb-5 border border-[#00c896]/30">
+                <h2 className="text-xl font-bold mb-4 text-[#00c896]">Final Score</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-white">
+                    <span>👤 Player 1 {gameSettings.type !== 'join' ? `(${gameSettings.playerName})` : ''}:</span>
+                    <span className="font-bold text-[#00c896]">{scores.player1}</span>
+                  </div>
+                  <div className="flex justify-between text-white">
+                    <span>👤 Player 2 {gameSettings.type === 'join' ? `(${gameSettings.playerName})` : ''}:</span>
+                    <span className="font-bold text-red-400">{scores.player2}</span>
+                  </div>
+                  <div className="border-t border-gray-600 pt-3">
+                    <div className="text-center text-white text-lg font-bold">
+                      {winner === 1 && (gameSettings.type === 'join' ? '😔 Player 1 Wins!' : `🏆 ${gameSettings.playerName} Wins!`)}
+                      {winner === 2 && (gameSettings.type === 'join' ? `🏆 ${gameSettings.playerName} Wins!` : '😔 Player 2 Wins!')}
+                      {winner === 0 && '🤝 It\'s a Tie!'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={resetGame}
+                  className="w-full mt-4 bg-[#00c896] text-[#040404] py-2 px-4 rounded-lg font-semibold hover:bg-[#00a67c] transition-all duration-300"
+                >
+                  Play Again
+                </button>
+              </div>
+            )}
+
             <h2 className="text-xl font-bold mb-4 text-[#00c896] text-center">Pyramid Board</h2>
             <div className="flex flex-col items-center justify-center">
               {pyramidStructure.map((count, index) => renderRow(index, count))}
@@ -489,10 +519,18 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
                 </div>
               </div>
             )}
+
+            <div className="text-white text-sm mt-5">
+              Moves: {moveHistory.length}/20
+            </div>
+            <div className="w-full bg-gray-900 rounded-full h-2 ">
+              <div className="bg-[#00c896] h-2 rounded-full transition-all"style={{ width: `${(moveHistory.length / 20) * 100}%` }}/>
+            </div>
+            
           </div>
 
           {/* Score & History */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             {gamePhase === 'finished' && (
               <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 border border-[#00c896]/30">
                 <h2 className="text-xl font-bold mb-4 text-[#00c896]">Final Score</h2>
@@ -506,7 +544,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
                     <span className="font-bold text-red-400">{scores.player2}</span>
                   </div>
                   <div className="border-t border-gray-600 pt-3">
-                    <div className="text-center text-lg font-bold">
+                    <div className="text-center text-white text-lg font-bold">
                       {winner === 1 && '🏆 You Win!'}
                       {winner === 2 && '😔 Player 2 Wins!'}
                       {winner === 0 && '🤝 It\'s a Tie!'}
@@ -515,7 +553,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
                 </div>
                 <button
                   onClick={resetGame}
-                  className="w-full mt-4 bg-[#00c896] text-[#040404] py-2 px-4 rounded-lg font-semibold hover:bg-[#00a67c] transition-colors"
+                  className="w-full mt-4 bg-[#00c896] text-[#040404] py-2 px-4 rounded-lg font-semibold hover:bg-[#00a67c] transition-all duration-300"
                 >
                   Play Again
                 </button>
@@ -544,7 +582,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
                 <div className="text-white text-sm">
                   Numbers placed: {moveHistory.length}/20
                 </div>
-                <div className="w-full bg-gray-800 rounded-full h-2">
+                <div className="w-full bg-gray-900 rounded-full h-2">
                   <div 
                     className="bg-[#00c896] h-2 rounded-full transition-all"
                     style={{ width: `${(moveHistory.length / 20) * 100}%` }}
@@ -552,7 +590,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

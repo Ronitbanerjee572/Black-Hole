@@ -75,7 +75,7 @@ const Lobby = ({ onStartGame }) => {
         <div className="flex mb-6 bg-[#040404] rounded-lg p-1">
           <button
             onClick={() => setActiveTab('localMultiplayer')}
-            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
               activeTab === 'localMultiplayer'
                 ? 'bg-[#00c896] text-[#040404] shadow-sm'
                 : 'text-gray-400 hover:text-white'
@@ -85,7 +85,7 @@ const Lobby = ({ onStartGame }) => {
           </button>
           <button
             onClick={() => setActiveTab('multiplayer')}
-            className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+            className={`flex-1 py-2 px-4 rounded-md transition-all duration-300 ${
               activeTab === 'multiplayer'
                 ? 'bg-[#00c896] text-[#040404] shadow-sm'
                 : 'text-gray-400 hover:text-white'
@@ -103,7 +103,7 @@ const Lobby = ({ onStartGame }) => {
             </div>
             <button
               onClick={handleLocalMultiplayer}
-              className="w-full bg-gradient-to-r from-[#00c896] to-[#00a67c] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:from-[#00a67c] hover:to-[#008566] transition-all transform hover:scale-105"
+              className="w-full bg-gradient-to-r from-[#00c896] to-[#00a67c] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:from-[#00a67c] hover:to-[#008566] transition-all duration-300 transform hover:scale-105"
             >
               Start Local Game
             </button>
@@ -125,7 +125,7 @@ const Lobby = ({ onStartGame }) => {
               
               <button
                 onClick={handleJoinRoom}
-                className="w-full bg-[#00c896] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:bg-[#00a67c] transition-colors"
+                className="w-full bg-[#00c896] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:bg-[#00a67c] transition-all duration-300"
               >
                 Join Room
               </button>
@@ -141,7 +141,7 @@ const Lobby = ({ onStartGame }) => {
               
               <button
                 onClick={handleCreateRoom}
-                className="w-full bg-[#00c896] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:bg-[#00a67c] transition-colors"
+                className="w-full bg-[#00c896] text-[#040404] py-3 px-6 rounded-lg font-semibold hover:bg-[#00a67c] transition-all duration-300"
               >
                 Create Room
               </button>
