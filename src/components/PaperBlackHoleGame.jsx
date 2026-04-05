@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import io from 'socket.io-client'
 
 const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   // Socket.IO connection
   const [socket, setSocket] = useState(null)
   const [isConnected, setIsConnected] = useState(false)
-  
+
   // Pyramid structure: rows of 1, 2, 3, 4, 5, 6 circles
   const pyramidStructure = [1, 2, 3, 4, 5, 6]
   const totalCircles = pyramidStructure.reduce((sum, count) => sum + count, 0) // 21
-  
+
   const [board, setBoard] = useState(Array(totalCircles).fill(null))
   const [activeRoomCode, setActiveRoomCode] = useState(gameSettings.roomCode)
   const [currentPlayer, setCurrentPlayer] = useState(1)
@@ -22,6 +22,10 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   const [selectedCircle, setSelectedCircle] = useState(null)
   const [connectionError, setConnectionError] = useState(null)
 
+  const [lineCoords, setLineCoords] = useState([])
+  const circleRefs = useRef([])
+  const boardRef = useRef(null)
+
   // Determine whose turn it is based on mode and creation type
   const myPlayerNumber = gameSettings.type === 'create' ? 1 : 2;
   const isMyTurn = gameSettings.isLocalMultiplayer || currentPlayer === myPlayerNumber;
@@ -31,9 +35,9 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
     if (gameSettings.mode === 'multiplayer' && !gameSettings.isLocalMultiplayer) {
       // Connect to server using absolute VITE env var (defaults to localhost)
       const serverUrl = import.meta.env.VITE_SERVER_URL || 'http://localhost:3002'
-      
+
       const newSocket = io(serverUrl)
-      
+
       newSocket.on('connect', () => {
         console.log('🔗 Connected to server!')
         setIsConnected(true)
@@ -42,13 +46,13 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
 
         // Join or create the room upon connection
         if (gameSettings.type === 'create') {
-          newSocket.emit('createRoom', { 
-            playerName: gameSettings.playerName 
+          newSocket.emit('createRoom', {
+            playerName: gameSettings.playerName
           })
         } else if (gameSettings.type === 'join') {
-          newSocket.emit('joinRoom', { 
+          newSocket.emit('joinRoom', {
             roomCode: gameSettings.roomCode,
-            playerName: gameSettings.playerName 
+            playerName: gameSettings.playerName
           })
         }
       })
@@ -72,9 +76,9 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         if (gameSettings.onRoomCreated) {
           gameSettings.onRoomCreated(data)
         }
-        
+
         setActiveRoomCode(data.roomCode)
-        
+
         // Initialize game state if provided
         if (data.gameState) {
           console.log('🎮 Initializing game state:', data.gameState)
@@ -118,12 +122,12 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         console.log('🏁 Game over:', data)
         setGamePhase('finished')
         setScores(data.scores)
-        
+
         // Extract the calculated black hole position from the server state
         if (data.gameState && data.gameState.blackHolePosition !== null) {
           setBlackHolePosition(data.gameState.blackHolePosition)
         }
-        
+
         // Determine winner
         if (data.scores.player1 < data.scores.player2) {
           setWinner(1)
@@ -174,7 +178,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   const getCirclePosition = (index) => {
     let currentRow = 0
     let circlesBefore = 0
-    
+
     for (let row = 0; row < pyramidStructure.length; row++) {
       if (index < circlesBefore + pyramidStructure[row]) {
         currentRow = row
@@ -182,7 +186,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
       }
       circlesBefore += pyramidStructure[row]
     }
-    
+
     const positionInRow = index - circlesBefore
     return { row: currentRow, position: positionInRow }
   }
@@ -191,7 +195,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   const getAdjacentCircles = (index) => {
     const { row, position } = getCirclePosition(index)
     const adjacent = []
-    
+
     // Check all possible adjacent positions
     const adjacentPositions = [
       { row: row - 1, position: position - 1 }, // top-left
@@ -201,11 +205,11 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
       { row: row + 1, position: position },       // bottom-left
       { row: row + 1, position: position + 1 },   // bottom-right
     ]
-    
+
     for (const adj of adjacentPositions) {
       if (adj.row >= 0 && adj.row < pyramidStructure.length &&
-          adj.position >= 0 && adj.position < pyramidStructure[adj.row]) {
-        
+        adj.position >= 0 && adj.position < pyramidStructure[adj.row]) {
+
         // Calculate the index of this adjacent circle
         let circlesBefore = 0
         for (let r = 0; r < adj.row; r++) {
@@ -215,14 +219,46 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         adjacent.push(adjIndex)
       }
     }
-    
+
     return adjacent
   }
+
+  // Draw SVG lines calculating DOM positions
+  useEffect(() => {
+    if (gamePhase === 'finished' && blackHolePosition !== null && boardRef.current) {
+      const boardRect = boardRef.current.getBoundingClientRect()
+      const bhRef = circleRefs.current[blackHolePosition]
+      if (!bhRef) return
+      const bhRect = bhRef.getBoundingClientRect()
+      
+      const bhX = bhRect.left - boardRect.left + bhRect.width / 2
+      const bhY = bhRect.top - boardRect.top + bhRect.height / 2
+      
+      const newCoords = []
+      const adjacentCircles = getAdjacentCircles(blackHolePosition)
+      
+      adjacentCircles.forEach(index => {
+        const el = circleRefs.current[index]
+        if (el) {
+          const rect = el.getBoundingClientRect()
+          newCoords.push({
+            x1: rect.left - boardRect.left + rect.width / 2,
+            y1: rect.top - boardRect.top + rect.height / 2,
+            x2: bhX,
+            y2: bhY,
+          })
+        }
+      })
+      setLineCoords(newCoords)
+    } else {
+      setLineCoords([])
+    }
+  }, [gamePhase, blackHolePosition, board])
 
   // Handle circle click
   const handleCircleClick = (index) => {
     if (gamePhase !== 'playing' || board[index] !== null || !isMyTurn) return
-    
+
     if (gameSettings.mode === 'multiplayer' && !gameSettings.isLocalMultiplayer && socket && isConnected) {
       // Send move to server for online multiplayer
       socket.emit('makeMove', {
@@ -240,14 +276,14 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         player: currentPlayer,
         number: currentNumber
       }
-      
+
       setBoard(newBoard)
       setMoveHistory([...moveHistory, {
         player: currentPlayer,
         number: currentNumber,
         position: index
       }])
-      
+
       // Check if game is finished (all numbers 1-10 placed by both players)
       if (currentNumber === 10 && currentPlayer === 2) {
         finishGame(newBoard)
@@ -260,7 +296,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
           setCurrentNumber(currentNumber + 1)
         }
       }
-      
+
       setSelectedCircle(null)
     }
   }
@@ -270,14 +306,14 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
     // Find the black hole (empty circle)
     const emptyIndex = finalBoard.findIndex(cell => cell === null)
     setBlackHolePosition(emptyIndex)
-    
+
     // Get adjacent circles to black hole
     const adjacentIndices = getAdjacentCircles(emptyIndex)
-    
+
     // Calculate scores
     let player1Score = 0
     let player2Score = 0
-    
+
     adjacentIndices.forEach(index => {
       const cell = finalBoard[index]
       if (cell) {
@@ -288,9 +324,9 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         }
       }
     })
-    
+
     setScores({ player1: player1Score, player2: player2Score })
-    
+
     // Determine winner (lowest score wins)
     if (player1Score < player2Score) {
       setWinner(1)
@@ -299,7 +335,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
     } else {
       setWinner(0) // tie
     }
-    
+
     setGamePhase('finished')
   }
 
@@ -327,25 +363,25 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   const renderRow = (rowIndex, circleCount) => {
     const circles = []
     let startIndex = 0
-    
+
     // Calculate start index for this row
     for (let r = 0; r < rowIndex; r++) {
       startIndex += pyramidStructure[r]
     }
-    
+
     for (let i = 0; i < circleCount; i++) {
       const circleIndex = startIndex + i
       const cell = board[circleIndex]
       const isBlackHole = blackHolePosition === circleIndex
       const isAdjacent = blackHolePosition !== null && getAdjacentCircles(blackHolePosition).includes(circleIndex)
       const isSelected = selectedCircle === circleIndex
-      
-      let circleClass = 'w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all '
+
+      let circleClass = 'w-12 h-12 rounded-full border-2 flex items-center justify-center font-bold text-sm transition-all relative z-10 '
       let content = ''
-      
+
       if (isBlackHole) {
         circleClass += 'bg-[#00c896] border-[#00c896] cursor-default '
-        content = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg>
+        content = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z" /><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999" /></svg>
       } else if (cell) {
         if (cell.player === 1) {
           circleClass += 'bg-[#00c896] text-[#040404] border-[#00a67c] cursor-default '
@@ -361,14 +397,16 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
       } else {
         circleClass += 'bg-gray-800 border-gray-600 cursor-not-allowed opacity-60 '
       }
-      
-      if (isAdjacent && gamePhase === 'finished') {
-        circleClass += 'ring-2 ring-yellow-400 '
-      }
-      
+
+      // No longer inject yellow rings as we now map direct SVG lines
+      // if (isAdjacent && gamePhase === 'finished') {
+      //   circleClass += 'ring-2 ring-yellow-400 '
+      // }
+
       circles.push(
         <div
           key={circleIndex}
+          ref={(el) => circleRefs.current[circleIndex] = el}
           className={circleClass}
           onClick={() => gamePhase === 'playing' && handleCircleClick(circleIndex)}
           onMouseEnter={() => gamePhase === 'playing' && setSelectedCircle(circleIndex)}
@@ -378,7 +416,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         </div>
       )
     }
-    
+
     return (
       <div key={`row-${rowIndex}`} className="flex justify-center gap-2 mb-2">
         {circles}
@@ -394,19 +432,47 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
             onClick={onBackToLobby}
             className="bg-[#000000] text-[#00c896] px-4 py-2 rounded-lg font-semibold hover:bg-[#00c896] hover:text-[#040404] transition-all duration-300 border border-[#00c896]"
           >
-            ← Lobby
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor" className="transition-colors duration-300" height="14px" width="14px" version="1.1" id="Capa_1" viewBox="0 0 26.676 26.676" xml:space="preserve">
+              <g>
+                <path d="M26.105,21.891c-0.229,0-0.439-0.131-0.529-0.346l0,0c-0.066-0.156-1.716-3.857-7.885-4.59   c-1.285-0.156-2.824-0.236-4.693-0.25v4.613c0,0.213-0.115,0.406-0.304,0.508c-0.188,0.098-0.413,0.084-0.588-0.033L0.254,13.815   C0.094,13.708,0,13.528,0,13.339c0-0.191,0.094-0.365,0.254-0.477l11.857-7.979c0.175-0.121,0.398-0.129,0.588-0.029   c0.19,0.102,0.303,0.295,0.303,0.502v4.293c2.578,0.336,13.674,2.33,13.674,11.674c0,0.271-0.191,0.508-0.459,0.562   C26.18,21.891,26.141,21.891,26.105,21.891z" />
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+                <g>
+                </g>
+              </g>
+            </svg>
           </button>
           <h1 className="text-3xl font-bold text-[#00c896] flex">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg> BlackHole
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z" /><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999" /></svg> BlackHole
           </h1>
-          <div className="text-[#00c896]">
-            <span className="font-semibold">Player:</span> {gameSettings.playerName}
-            {gameSettings.mode === 'multiplayer' && (
-              <span className="ml-2 text-sm">
-                {isConnected ? '🟢Online' : '🔴Offline'}
-              </span>
-            )}
-          </div>
+
+          <div className='w-14'></div>
         </div>
 
         {/* Connection Status */}
@@ -416,36 +482,27 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
           {/* Game Info */}
           <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 border border-[#00c896]/30 transition-all">
             <h2 className="text-xl font-bold mb-4 text-[#00c896]">Game Info</h2>
             <div className="space-y-3 text-sm text-gray-300">
               {/* Accordion for Instructions */}
-              <details className="group border border-[#00c896]/40 rounded-lg bg-[#00c896]/5 overflow-hidden transition-all duration-500 open:bg-[#00c896]/10 mb-5 shadow-inner">
-                <summary className="font-semibold text-white cursor-pointer outline-none list-none flex justify-between items-center hover:text-[#00c896] transition-colors duration-300 [&::-webkit-details-marker]:hidden p-3 bg-black/30">
-                  <span className="flex items-center gap-2">Instructions</span>
-                  <span className="transition-transform duration-300 group-open:rotate-180 text-[#00c896]">⏷</span>
-                </summary>
-                <div className="space-y-3 p-4 border-t border-[#00c896]/20 opacity-0 group-open:opacity-100 group-open:animate-in group-open:slide-in-from-top-2 group-open:fade-in duration-300">
-                  <div className="border-l-4 border-[#00c896] pl-3">
-                    <p className="font-semibold text-white">Objective:</p>
-                    <p>Place numbers 1-10. The final empty circle becomes the Black Hole.</p>
-                    <p className="mt-1">Lowest score (numbers touching Black Hole) wins!</p>
-                  </div>
-                  <div className="border-l-4 border-[#00c896] pl-3">
-                    <p className="font-semibold text-white">How to Play:</p>
-                    <p>• Players alternate placing numbers 1-10 in sequence</p>
-                    <p>• Click any empty circle to place your number</p>
-                    <p>• No adjacency requirements</p>
-                  </div>
-                </div>
-              </details>
+
+              <div className="text-[#00c896]">
+                <span className="font-semibold">Player:</span> {gameSettings.playerName}
+                {gameSettings.mode === 'multiplayer' && (
+                  <span className="ml-2 text-sm">
+                    {isConnected ? '🟢Online' : '🔴Offline'}
+                  </span>
+                )}
+              </div>
+
               {gamePhase === 'playing' && (
                 <div className="border-l-4 border-[#00c896] pl-3">
                   <p className="font-semibold text-white">Current Turn:</p>
                   <p>
-                    {gameSettings.mode === 'multiplayer' 
+                    {gameSettings.mode === 'multiplayer'
                       ? `Player ${currentPlayer} places number ${currentNumber}`
                       : `Player ${currentPlayer} (${currentPlayer === 1 ? gameSettings.playerName : 'Computer'}) places number ${currentNumber}`
                     }
@@ -469,6 +526,31 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
                   )}
                 </div>
               )}
+
+              <details className="group border border-[#00c896]/40 rounded-lg bg-[#00c896]/5 overflow-hidden transition-all duration-500 open:bg-[#00c896]/10 mt-5 shadow-inner">
+                <summary className="font-semibold text-white cursor-pointer outline-none list-none flex justify-between items-center hover:text-[#00c896] transition-colors duration-300 [&::-webkit-details-marker]:hidden p-3 bg-black/30">
+                  <span className="flex items-center gap-2">Instructions</span>
+                  <span className="transition-transform duration-300 group-open:rotate-180 text-[#00c896]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16px" height="16px" viewBox="0 0 24 24" fill="#00c896">
+                      <path fill-rule="evenodd" clip-rule="evenodd" d="M12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L6.29289 9.70711C5.90237 9.31658 5.90237 8.68342 6.29289 8.29289C6.68342 7.90237 7.31658 7.90237 7.70711 8.29289L12 12.5858L16.2929 8.29289C16.6834 7.90237 17.3166 7.90237 17.7071 8.29289C18.0976 8.68342 18.0976 9.31658 17.7071 9.70711L12.7071 14.7071Z" fill="#00c896" />
+                    </svg>
+                  </span>
+                </summary>
+                <div className="space-y-3 p-4 border-t border-[#00c896]/20 opacity-0 group-open:opacity-100 group-open:animate-in group-open:slide-in-from-top-2 group-open:fade-in duration-300">
+                  <div className="border-l-4 border-[#00c896] pl-3">
+                    <p className="font-semibold text-white">Objective:</p>
+                    <p>Place numbers 1-10. The final empty circle becomes the Black Hole.</p>
+                    <p className="mt-1">Lowest score (numbers touching Black Hole) wins!</p>
+                  </div>
+                  <div className="border-l-4 border-[#00c896] pl-3">
+                    <p className="font-semibold text-white">How to Play:</p>
+                    <p>• Players alternate placing numbers 1-10 in sequence</p>
+                    <p>• Click any empty circle to place your number</p>
+                    <p>• No adjacency requirements</p>
+                  </div>
+                </div>
+              </details>
+
             </div>
           </div>
 
@@ -505,17 +587,24 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
             )}
 
             <h2 className="text-xl font-bold mb-4 text-[#00c896] text-center">Pyramid Board</h2>
-            <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center relative w-full h-full" ref={boardRef}>
               {pyramidStructure.map((count, index) => renderRow(index, count))}
+              {lineCoords.length > 0 && (
+                <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
+                  {lineCoords.map((coord, i) => (
+                    <line key={i} x1={coord.x1} y1={coord.y1} x2={coord.x2} y2={coord.y2} stroke="#00c896" strokeWidth="4" strokeLinecap="round" className="animate-[fade-in_0.5s_ease-out]" style={{ filter: 'drop-shadow(0 0 8px #00c896)' }} />
+                  ))}
+                </svg>
+              )}
             </div>
-            
+
             {gamePhase === 'finished' && (
               <div className="mt-6 text-center">
                 <div className="text-lg font-bold text-[#00c896] mb-2 flex items-center justify-center gap-2">
-                  Black Hole: <svg className="text-[#00c896]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg>
+                  Black Hole: <svg className="text-[#00c896]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z" /><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999" /></svg>
                 </div>
                 <div className="text-sm text-gray-400">
-                  Yellow rings show circles touching the Black Hole
+                  Glowing lines indicate circles falling into the Black Hole
                 </div>
               </div>
             )}
@@ -524,9 +613,9 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
               Moves: {moveHistory.length}/20
             </div>
             <div className="w-full bg-gray-900 rounded-full h-2 ">
-              <div className="bg-[#00c896] h-2 rounded-full transition-all"style={{ width: `${(moveHistory.length / 20) * 100}%` }}/>
+              <div className="bg-[#00c896] h-2 rounded-full transition-all" style={{ width: `${(moveHistory.length / 20) * 100}%` }} />
             </div>
-            
+
           </div>
 
           {/* Score & History */}

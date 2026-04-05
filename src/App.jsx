@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Toaster } from 'react-hot-toast'
 import Lobby from './components/Lobby'
 import PaperBlackHoleGame from './components/PaperBlackHoleGame'
 import Radar from './component/Radar'
@@ -20,6 +21,17 @@ function App() {
 
   return (
     <>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: '#040404',
+            color: '#fff',
+            border: '1px solid #00c896',
+            boxShadow: '0 4px 6px -1px rgba(0, 200, 150, 0.2)'
+          }
+        }}
+      />
       <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#000000]">
         <Radar
           speed={0.08}

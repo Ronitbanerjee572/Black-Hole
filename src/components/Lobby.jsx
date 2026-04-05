@@ -1,13 +1,14 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 
 const Lobby = ({ onStartGame }) => {
   const [activeTab, setActiveTab] = useState('localMultiplayer')
   const [roomCode, setRoomCode] = useState('')
-  const [playerName, setPlayerName] = useState('Ronit')
+  const [playerName, setPlayerName] = useState('')
 
   const handleCreateRoom = () => {
     if (!playerName.trim()) {
-      alert('Please enter your name')
+      toast.error('Please enter your name')
       return
     }
     const newRoomCode = Math.random().toString(36).substring(2, 8).toUpperCase()
@@ -22,11 +23,11 @@ const Lobby = ({ onStartGame }) => {
 
   const handleJoinRoom = () => {
     if (!playerName.trim()) {
-      alert('Please enter your name')
+      toast.error('Please enter your name')
       return
     }
     if (!roomCode.trim()) {
-      alert('Please enter a room code')
+      toast.error('Please enter a room code')
       return
     }
     onStartGame({ 
@@ -40,7 +41,7 @@ const Lobby = ({ onStartGame }) => {
 
   const handleLocalMultiplayer = () => {
     if (!playerName.trim()) {
-      alert('Please enter your name')
+      toast.error('Please enter your name')
       return
     }
     // For local multiplayer, create a room and auto-join as second player
@@ -148,6 +149,12 @@ const Lobby = ({ onStartGame }) => {
             </div>
           </div>
         )}
+        
+        <div className="translate-y-6 text-center text-sm text-gray-500">
+          <a href="mailto:ronitbanerjee49@gmail.com" className="hover:text-[#00c896] transition-colors duration-300">
+            Contact Developer
+          </a>
+        </div>
       </div>
     </div>
   )

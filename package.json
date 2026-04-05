@@ -15,6 +15,7 @@
     "ogl": "^1.0.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-hot-toast": "^2.6.0",
     "socket.io-client": "^4.8.3",
     "tailwindcss": "^4.2.2"
   },
