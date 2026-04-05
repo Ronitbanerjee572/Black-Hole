@@ -55,9 +55,11 @@ const Lobby = ({ onStartGame }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040404] to-[#1f1f1f] flex items-center justify-center p-4">
-      <div className="bg-[#1f1f1f] rounded-2xl shadow-2xl p-8 w-full max-w-md border border-[#00c896]">
-        <h1 className="text-4xl font-bold text-center mb-8 text-[#00c896]">🕳️ Black Hole</h1>
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
+      <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-2xl shadow-2xl p-8 w-full max-w-md border border-[#00c896]/30">
+        <h1 className="text-4xl font-bold text-center mb-8 text-[#00c896] flex items-center justify-center gap-3">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg> BlackHole
+        </h1>
         
         <div className="mb-6">
           <input

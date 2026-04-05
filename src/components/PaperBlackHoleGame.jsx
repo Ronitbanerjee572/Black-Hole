@@ -344,8 +344,8 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
       let content = ''
       
       if (isBlackHole) {
-        circleClass += 'bg-purple-900 border-purple-400 cursor-default '
-        content = '🕳️'
+        circleClass += 'bg-[#00c896] border-[#00c896] cursor-default '
+        content = <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#000000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg>
       } else if (cell) {
         if (cell.player === 1) {
           circleClass += 'bg-[#00c896] text-[#040404] border-[#00a67c] cursor-default '
@@ -354,7 +354,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
         }
         content = cell.number.toString()
       } else if (gamePhase === 'playing' && isMyTurn) {
-        circleClass += 'bg-gray-800 border-gray-600 hover:bg-gray-700 hover:border-[#00c896] cursor-pointer '
+        circleClass += 'bg-black border-gray-600 hover:bg-gray-900 hover:border-[#00c896] cursor-pointer '
         if (isSelected) {
           circleClass += 'ring-2 ring-[#00c896] '
         }
@@ -387,16 +387,18 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#040404] to-[#1f1f1f] p-4">
+    <div className="min-h-screen bg-transparent p-4">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <button
             onClick={onBackToLobby}
-            className="bg-[#1f1f1f] text-[#00c896] px-4 py-2 rounded-lg font-semibold hover:bg-[#00c896] hover:text-[#040404] transition-colors border border-[#00c896]"
+            className="bg-[#000000] text-[#00c896] px-4 py-2 rounded-lg font-semibold hover:bg-[#00c896] hover:text-[#040404] transition-colors border border-[#00c896]"
           >
             ← Back to Lobby
           </button>
-          <h1 className="text-3xl font-bold text-[#00c896]">Black Hole</h1>
+          <h1 className="text-3xl font-bold text-[#00c896] flex">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg> BlackHole
+          </h1>
           <div className="text-[#00c896]">
             <span className="font-semibold">Player:</span> {gameSettings.playerName}
             {gameSettings.mode === 'multiplayer' && (
@@ -416,7 +418,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Game Info */}
-          <div className="bg-[#1f1f1f] rounded-lg shadow-lg p-4 border border-[#00c896]">
+          <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 border border-[#00c896]/30 transition-all">
             <h2 className="text-xl font-bold mb-4 text-[#00c896]">Game Info</h2>
             <div className="space-y-3 text-sm text-gray-300">
               {/* Accordion for Instructions */}
@@ -471,7 +473,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
           </div>
 
           {/* Game Board */}
-          <div className="bg-[#1f1f1f] rounded-lg shadow-lg p-6 border border-[#00c896]">
+          <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-6 border border-[#00c896]/30 transition-all">
             <h2 className="text-xl font-bold mb-4 text-[#00c896] text-center">Pyramid Board</h2>
             <div className="flex flex-col items-center justify-center">
               {pyramidStructure.map((count, index) => renderRow(index, count))}
@@ -479,8 +481,8 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
             
             {gamePhase === 'finished' && (
               <div className="mt-6 text-center">
-                <div className="text-lg font-bold text-[#00c896] mb-2">
-                  Black Hole: 🕳️
+                <div className="text-lg font-bold text-[#00c896] mb-2 flex items-center justify-center gap-2">
+                  Black Hole: <svg className="text-[#00c896]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 1 }}><path d="M20.5 5a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m-17 17a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3m17.539-8.938c.569-.135.961-.569.961-1.062s-.392-.927-.962-1.062l-4.517-1.076a5 5 0 0 0-9.042 0l-4.517 1.076C2.392 11.073 2 11.507 2 12s.392.927.962 1.062l4.517 1.076a5 5 0 0 0 9.042 0z"/><path d="M12 14a2 2 0 1 0 0-4a2 2 0 0 0 0 4m3-11.542A10 10 0 0 0 12 2a9.99 9.99 0 0 0-8 4m5 15.542A10 10 0 0 0 12 22a9.99 9.99 0 0 0 8-3.999"/></svg>
                 </div>
                 <div className="text-sm text-gray-400">
                   Yellow rings show circles touching the Black Hole
@@ -492,7 +494,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
           {/* Score & History */}
           <div className="space-y-4">
             {gamePhase === 'finished' && (
-              <div className="bg-[#1f1f1f] rounded-lg shadow-lg p-4 border border-[#00c896]">
+              <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 border border-[#00c896]/30">
                 <h2 className="text-xl font-bold mb-4 text-[#00c896]">Final Score</h2>
                 <div className="space-y-3">
                   <div className="flex justify-between text-white">
@@ -520,7 +522,7 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
               </div>
             )}
 
-            <div className="bg-[#1f1f1f] rounded-lg shadow-lg p-4 border border-[#00c896]">
+            <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 border border-[#00c896]/30">
               <h2 className="text-xl font-bold mb-4 text-[#00c896]">Move History</h2>
               <div className="space-y-1 text-xs text-gray-300 max-h-64 overflow-y-auto">
                 {moveHistory.length === 0 ? (
@@ -536,13 +538,13 @@ const PaperBlackHoleGame = ({ gameSettings, onBackToLobby }) => {
               </div>
             </div>
 
-            <div className="bg-[#1f1f1f] rounded-lg shadow-lg p-4 border border-[#00c896]">
+            <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-xl shadow-2xl p-4 border border-[#00c896]/30">
               <h2 className="text-xl font-bold mb-4 text-[#00c896]">Progress</h2>
               <div className="space-y-2">
                 <div className="text-white text-sm">
                   Numbers placed: {moveHistory.length}/20
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
+                <div className="w-full bg-gray-800 rounded-full h-2">
                   <div 
                     className="bg-[#00c896] h-2 rounded-full transition-all"
                     style={{ width: `${(moveHistory.length / 20) * 100}%` }}
