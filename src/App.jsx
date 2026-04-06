@@ -35,7 +35,7 @@ function App() {
       <div className="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-[#000000]">
         <Radar
           speed={0.08}
-          scale={0.8}
+          scale={0.9}
           ringCount={5}
           spokeCount={7}
           ringThickness={0.05}
@@ -45,7 +45,7 @@ function App() {
           sweepLobes={1}
           color="#00c896"
           backgroundColor="#000000"
-          falloff={2}
+          falloff={1}
           brightness={0.7}
           enableMouseInteraction={false}
           mouseInfluence={0.1}

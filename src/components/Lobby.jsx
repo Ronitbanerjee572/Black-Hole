@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
 
 const Lobby = ({ onStartGame }) => {
@@ -55,6 +55,16 @@ const Lobby = ({ onStartGame }) => {
     })
   }
 
+  const [views, setViews] = useState(0);
+
+  useEffect(() => {
+    // countapi.xyz is dead, using counterapi.dev as a reliable free drop-in replacement
+    fetch('https://api.counterapi.dev/v1/game-blackhole-netlify-v1/lobby/up')
+      .then((res) => res.json())
+      .then((data) => setViews(data.count))
+      .catch((err) => console.error(err));
+  }, []);
+
   return (
     <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
       <div className="bg-[#00c89602] bg-opacity-10 backdrop-blur-md bg-clip-padding rounded-2xl shadow-2xl p-8 w-full max-w-md border border-[#00c896]/30">
@@ -92,7 +102,7 @@ const Lobby = ({ onStartGame }) => {
                 : 'text-gray-400 hover:text-white'
             }`}
           >
-            Online Multiplayer
+            Online 2P
           </button>
         </div>
 
@@ -100,7 +110,7 @@ const Lobby = ({ onStartGame }) => {
           <div className="space-y-4">
             <div className="text-center text-gray-400 mb-4">
               <p>Play with a friend on the same device!</p>
-              <p className="text-sm mt-2">👥 Both players take turns on this screen</p>
+              <p className="text-sm mb-4">👥 Both players take turns on this screen</p>
             </div>
             <button
               onClick={handleLocalMultiplayer}
@@ -150,10 +160,12 @@ const Lobby = ({ onStartGame }) => {
           </div>
         )}
         
-        <div className="translate-y-6 text-center text-sm text-gray-500">
-          <a href="mailto:ronitbanerjee49@gmail.com" className="hover:text-[#00c896] transition-colors duration-300">
+        <div className="translate-y-6 text-center text-sm text-gray-500 flex gap-2 items-end justify-center">
+          <a href="mailto:ronitbanerjee49@gmail.com" className="hover:text-[#00c896] transition-colors duration-300 underline italic">
             Contact Developer
           </a>
+          •
+          <p className="mt-1">Views:{views}</p>
         </div>
       </div>
     </div>

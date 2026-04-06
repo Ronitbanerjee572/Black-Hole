@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --font-heading: "Rubik Moonrocks", sans-serif;
-  --font-subheading: "Outfit", sans-serif;
-  --font-body: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-heading: "Orbitron", sans-serif;
+  --font-subheading: "Orbitron", sans-serif;
+  --font-body: "Space Mono", monospace;
 }
 
 @layer base {
@@ -12,10 +12,29 @@
   }
   h1 {
     font-family: var(--font-heading);
-    font-weight: 400;
+    font-optical-sizing: auto;
   }
   h2, h3, h4, h5, h6 {
     font-family: var(--font-subheading);
     font-optical-sizing: auto;
+  }
+}
+
+@keyframes draw-line {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes absorb-node {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-3px, 1px) rotate(-3deg); }
+  40% { transform: translate(2px, -2px) rotate(3deg); }
+  60% { transform: translate(-2px, 2px) rotate(-1deg); }
+  80% { transform: translate(3px, -1px) rotate(2deg); }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+    background-color: #000000;
+    color: #ffffff;
   }
 }
